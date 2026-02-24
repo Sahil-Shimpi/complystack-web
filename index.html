@@ -9,18 +9,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM Mono:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #0d0d0d; min-height: 100vh; }
 
     .w2m-root { min-height: 100vh; background: #0d0d0d; color: #f5f0e8; font-family: 'DM Sans', sans-serif; padding: 0 0 60px; }
     .w2m-header { background: #13294B; border-bottom: 3px solid #E84A27; padding: 20px 28px 18px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .w2m-logo { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #f5f0e8; }
+    .w2m-logo { font-family: 'DM Mono', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #f5f0e8; }
     .w2m-logo span { color: #E84A27; }
     .w2m-badge { font-family: 'DM Mono', monospace; font-size: 10px; background: #E84A27; color: white; padding: 3px 9px; border-radius: 20px; letter-spacing: 1px; }
     .w2m-container { max-width: 760px; margin: 0 auto; padding: 32px 20px 0; }
-    .w2m-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
+    .w2m-title { font-family: 'DM Mono', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
     .w2m-subtitle { font-size: 14px; color: #9b9589; margin-bottom: 28px; font-family: 'DM Mono', monospace; }
     .w2m-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 24px; margin-bottom: 20px; }
     .w2m-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9b9589; margin-bottom: 10px; }
@@ -35,7 +35,7 @@
     .grid-wrap { overflow-x: auto; }
     .grid-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 520px; }
     .grid-head-cell { text-align: center; padding: 6px 4px 12px; }
-    .grid-day-label { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: #f5f0e8; display: block; }
+    .grid-day-label { font-family: 'DM Mono', sans-serif; font-size: 13px; font-weight: 800; color: #f5f0e8; display: block; }
     .grid-date-label { font-family: 'DM Mono', monospace; font-size: 10px; color: #E84A27; display: block; margin-top: 2px; }
     .grid-time-cell { font-family: 'DM Mono', monospace; font-size: 10px; color: #666; padding: 0 10px 0 0; white-space: nowrap; vertical-align: middle; width: 56px; text-align: right; }
     .grid-slot { width: 100%; height: 36px; border-radius: 5px; border: 1.5px solid #2a2a2a; cursor: pointer; transition: all 0.1s; margin: 1px; display: block; user-select: none; }
@@ -55,13 +55,13 @@
     .heat-label:after { content: attr(data-count); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.75); pointer-events: none; }
     .winner-banner { background: linear-gradient(135deg, #13294B, #1a3a1a); border: 2px solid #22E87A; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
     .winner-icon { font-size: 28px; }
-    .winner-time { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #22E87A; }
+    .winner-time { font-family: 'DM Mono', sans-serif; font-size: 20px; font-weight: 800; color: #22E87A; }
     .winner-votes { font-family: 'DM Mono', monospace; font-size: 11px; color: #9b9589; margin-top: 2px; }
     .respondent-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .respondent-chip { background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: #7ab4f5; }
     .success-screen { text-align: center; padding: 48px 24px; }
     .success-icon { width: 72px; height: 72px; background: #22E87A22; border: 2px solid #22E87A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
-    .success-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .success-title { font-family: 'DM Mono', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
     .success-sub { font-size: 14px; color: #9b9589; max-width: 320px; margin: 0 auto; line-height: 1.6; }
     .admin-link { text-align: center; margin-top: 24px; font-family: 'DM Mono', monospace; font-size: 11px; color: #444; cursor: pointer; }
     .admin-link:hover { color: #666; }
@@ -289,8 +289,7 @@
                   <p className="instructions">
                     <strong>1. Enter your name</strong> and click or drag the slots you're available.<br/>
                     <strong>2. Submit</strong> — your choices are recorded privately.<br/>
-                    <strong>3. The organizer</strong> will review all responses and confirm the final time.<br/>
-                    <strong>You cannot see others' availability</strong> — this prevents anchoring bias.
+                    <strong>3. The organizer</strong> will review all responses and confirm the final time.
                   </p>
                 </div>
                 <div className="admin-link" onClick={() => setView("adminLogin")}>Organizer? View results →</div>
