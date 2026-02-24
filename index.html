@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM Mono:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #0d0d0d; min-height: 100vh; }
@@ -57,8 +57,39 @@
     .winner-icon { font-size: 28px; }
     .winner-time { font-family: 'DM Mono', sans-serif; font-size: 20px; font-weight: 800; color: #22E87A; }
     .winner-votes { font-family: 'DM Mono', monospace; font-size: 11px; color: #9b9589; margin-top: 2px; }
-    .respondent-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-    .respondent-chip { background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: #7ab4f5; }
+    .respondent-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .respondent-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px;
+      padding: 4px 8px 4px 12px; font-size: 12px;
+      font-family: 'DM Mono', monospace; color: #7ab4f5;
+    }
+    .respondent-delete {
+      display: flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: transparent; border: 1px solid #2a4a7a;
+      color: #7ab4f5; font-size: 10px; cursor: pointer;
+      transition: all 0.15s; line-height: 1; padding: 0;
+      font-family: monospace;
+    }
+    .respondent-delete:hover { background: #E84A27; border-color: #E84A27; color: white; }
+    .confirm-delete-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+    }
+    .confirm-delete-box {
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px;
+      padding: 28px 32px; max-width: 360px; width: 90%; text-align: center;
+    }
+    .confirm-delete-name {
+      font-family: 'DM Mono', monospace; font-size: 16px;
+      font-weight: 700; color: #E84A27; margin: 10px 0 6px;
+    }
+    .confirm-delete-sub {
+      font-size: 13px; color: #9b9589; margin-bottom: 22px; line-height: 1.5;
+    }
+    .confirm-delete-actions { display: flex; gap: 10px; justify-content: center; }
     .success-screen { text-align: center; padding: 48px 24px; }
     .success-icon { width: 72px; height: 72px; background: #22E87A22; border: 2px solid #22E87A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
     .success-title { font-family: 'DM Mono', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
@@ -75,7 +106,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useCallback } = React;
+    const { useState, useEffect } = React;
 
     const DAYS = [
       { id: "thu226", label: "Thu", date: "Feb 26", slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","12:30 PM"] },
@@ -87,27 +118,19 @@
 
     const ADMIN_PASS = "BIG2026";
     const STORAGE_KEY = "iirer:responses:v1";
-
     const ALL_SLOT_IDS = DAYS.flatMap(d => d.slots.map(s => `${d.id}::${s}`));
 
     function slotKey(dayId, slot) { return `${dayId}::${slot}`; }
-
     function getSlotInfo(key) {
       const [dayId, slot] = key.split("::");
       const day = DAYS.find(d => d.id === dayId);
       return day ? `${day.label} ${day.date} @ ${slot}` : key;
     }
-
     function loadFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch { return []; }
+      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+      catch { return []; }
     }
-
-    function saveToStorage(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
+    function saveToStorage(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
 
     function buildAllTimes() {
       const all = new Set();
@@ -133,13 +156,11 @@
       const [responses, setResponses] = useState([]);
       const [adminPass, setAdminPass] = useState("");
       const [adminError, setAdminError] = useState("");
+      const [deleteTarget, setDeleteTarget] = useState(null); // name to confirm-delete
 
       const allTimes = buildAllTimes();
 
-      useEffect(() => {
-        setResponses(loadFromStorage());
-      }, []);
-
+      useEffect(() => { setResponses(loadFromStorage()); }, []);
       useEffect(() => {
         const up = () => setIsDragging(false);
         window.addEventListener("mouseup", up);
@@ -155,7 +176,6 @@
           return next;
         });
       };
-
       const handleMouseEnter = (key) => {
         if (!isDragging) return;
         setSelected(prev => {
@@ -169,9 +189,7 @@
         if (!name.trim() || selected.size === 0) return;
         const current = loadFromStorage();
         const updated = [...current.filter(r => r.name !== name.trim()), {
-          name: name.trim(),
-          slots: Array.from(selected),
-          submittedAt: new Date().toISOString(),
+          name: name.trim(), slots: Array.from(selected), submittedAt: new Date().toISOString(),
         }];
         saveToStorage(updated);
         setResponses(updated);
@@ -188,12 +206,22 @@
         }
       };
 
-      // Vote counts
+      // ── DELETE ──────────────────────────────────────────────────────────────
+      const confirmDelete = (name) => setDeleteTarget(name);
+      const cancelDelete = () => setDeleteTarget(null);
+      const executeDelete = () => {
+        const updated = responses.filter(r => r.name !== deleteTarget);
+        saveToStorage(updated);
+        setResponses(updated);
+        setDeleteTarget(null);
+      };
+
+      // ── VOTE COUNTS ─────────────────────────────────────────────────────────
       const voteCounts = {};
       ALL_SLOT_IDS.forEach(id => { voteCounts[id] = 0; });
       responses.forEach(r => r.slots.forEach(s => { if (voteCounts[s] !== undefined) voteCounts[s]++; }));
       const maxVotes = Math.max(...Object.values(voteCounts), 0);
-      const winnerKey = maxVotes > 0 ? Object.entries(voteCounts).sort((a, b) => b[1] - a[1])[0][0] : null;
+      const winnerKey = maxVotes > 0 ? Object.entries(voteCounts).sort((a,b) => b[1]-a[1])[0][0] : null;
 
       const heatClass = (key) => {
         if (!voteCounts[key]) return "heat-0";
@@ -233,17 +261,13 @@
                       <td key={d.id} className="grid-slot-cell">
                         {hasSlot ? (
                           interactive ? (
-                            <div
-                              className={`grid-slot ${isSel ? "selected" : "available"}`}
+                            <div className={`grid-slot ${isSel ? "selected" : "available"}`}
                               onMouseDown={() => handleMouseDown(key, isSel)}
-                              onMouseEnter={() => handleMouseEnter(key)}
-                            />
+                              onMouseEnter={() => handleMouseEnter(key)} />
                           ) : (
-                            <div
-                              className={`grid-slot heat-label ${isWinner ? "heat-max" : heatClass(key)}`}
+                            <div className={`grid-slot heat-label ${isWinner ? "heat-max" : heatClass(key)}`}
                               data-count={count > 0 ? count : ""}
-                              title={`${getSlotInfo(key)}: ${count} available`}
-                            />
+                              title={`${getSlotInfo(key)}: ${count} available`} />
                           )
                         ) : (
                           <div className="grid-slot empty" />
@@ -260,6 +284,24 @@
 
       return (
         <div className="w2m-root">
+
+          {/* ── DELETE CONFIRM MODAL ── */}
+          {deleteTarget && (
+            <div className="confirm-delete-overlay" onClick={cancelDelete}>
+              <div className="confirm-delete-box" onClick={e => e.stopPropagation()}>
+                <div style={{fontSize:28}}>🗑️</div>
+                <div className="confirm-delete-name">{deleteTarget}</div>
+                <div className="confirm-delete-sub">
+                  This will permanently remove their availability response. This cannot be undone.
+                </div>
+                <div className="confirm-delete-actions">
+                  <button className="w2m-btn w2m-btn-ghost" onClick={cancelDelete}>Cancel</button>
+                  <button className="w2m-btn w2m-btn-primary" onClick={executeDelete}>Delete</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <header className="w2m-header">
             <div className="w2m-logo">BIG <span>×</span> IIRER</div>
             <div className="w2m-badge">MEETING SCHEDULER</div>
@@ -347,15 +389,21 @@
                 <p className="w2m-subtitle">Enter your admin password to view aggregated results.</p>
                 <div className="w2m-card">
                   <div className="w2m-label">Admin Password</div>
-                  <input className="w2m-input" type="password" placeholder="••••••••" value={adminPass}
+                  <input
+                    className="w2m-input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={adminPass}
+                    autoComplete="off"
                     onChange={e => { setAdminPass(e.target.value); setAdminError(""); }}
-                    onKeyDown={e => e.key === "Enter" && handleAdminLogin()} autoFocus />
+                    onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
+                    autoFocus
+                  />
                   {adminError && <p style={{color:"#E84A27",fontSize:12,marginTop:8,fontFamily:"'DM Mono',monospace"}}>{adminError}</p>}
                   <div style={{marginTop:16,display:"flex",gap:10}}>
                     <button className="w2m-btn w2m-btn-primary" onClick={handleAdminLogin}>View Results →</button>
                     <button className="w2m-btn w2m-btn-ghost" onClick={() => setView("home")}>← Back</button>
                   </div>
-                  <p style={{marginTop:14,fontSize:11,color:"#555",fontFamily:"'DM Mono',monospace"}}></p>
                 </div>
               </>
             )}
@@ -397,10 +445,20 @@
                       <Grid interactive={false} />
                     </div>
 
+                    {/* RESPONDENTS with delete */}
                     <div className="w2m-card">
                       <div className="w2m-label">Respondents ({responses.length})</div>
                       <div className="respondent-list">
-                        {responses.map((r, i) => <div key={i} className="respondent-chip">{r.name}</div>)}
+                        {responses.map((r, i) => (
+                          <div key={i} className="respondent-chip">
+                            {r.name}
+                            <button
+                              className="respondent-delete"
+                              title={`Remove ${r.name}`}
+                              onClick={() => confirmDelete(r.name)}
+                            >✕</button>
+                          </div>
+                        ))}
                       </div>
                     </div>
 
