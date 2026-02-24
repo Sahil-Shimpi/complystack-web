@@ -273,8 +273,8 @@
                 <h1 className="w2m-title">When can you<br/>meet with Robyn & Jim?</h1>
                 <p className="w2m-subtitle">Select all times that work for you. Availability is kept private.</p>
                 <div className="w2m-card">
-                  <div className="w2m-label">Your Name</div>
-                  <input className="w2m-input" placeholder="e.g. Alex Chen" value={name}
+                  <div className="w2m-label">Your Name and Team</div>
+                  <input className="w2m-input" placeholder="e.g. Sahil - Team Z" value={name}
                     onChange={e => setName(e.target.value)}
                     onKeyDown={e => e.key === "Enter" && name.trim() && setView("pick")}
                     autoFocus />
