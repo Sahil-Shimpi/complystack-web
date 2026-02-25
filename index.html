@@ -13,7 +13,6 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: #0d0d0d; min-height: 100vh; }
-
     .w2m-root { min-height: 100vh; background: #0d0d0d; color: #f5f0e8; font-family: 'DM Sans', sans-serif; padding: 0 0 60px; }
     .w2m-header { background: #13294B; border-bottom: 3px solid #E84A27; padding: 20px 28px 18px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
     .w2m-logo { font-family: 'DM Mono', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #f5f0e8; }
@@ -58,37 +57,13 @@
     .winner-time { font-family: 'DM Mono', sans-serif; font-size: 20px; font-weight: 800; color: #22E87A; }
     .winner-votes { font-family: 'DM Mono', monospace; font-size: 11px; color: #9b9589; margin-top: 2px; }
     .respondent-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .respondent-chip {
-      display: flex; align-items: center; gap: 6px;
-      background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px;
-      padding: 4px 8px 4px 12px; font-size: 12px;
-      font-family: 'DM Mono', monospace; color: #7ab4f5;
-    }
-    .respondent-delete {
-      display: flex; align-items: center; justify-content: center;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: transparent; border: 1px solid #2a4a7a;
-      color: #7ab4f5; font-size: 10px; cursor: pointer;
-      transition: all 0.15s; line-height: 1; padding: 0;
-      font-family: monospace;
-    }
+    .respondent-chip { display: flex; align-items: center; gap: 6px; background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px; padding: 4px 8px 4px 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: #7ab4f5; }
+    .respondent-delete { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: transparent; border: 1px solid #2a4a7a; color: #7ab4f5; font-size: 10px; cursor: pointer; transition: all 0.15s; line-height: 1; padding: 0; font-family: monospace; }
     .respondent-delete:hover { background: #E84A27; border-color: #E84A27; color: white; }
-    .confirm-delete-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-    }
-    .confirm-delete-box {
-      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px;
-      padding: 28px 32px; max-width: 360px; width: 90%; text-align: center;
-    }
-    .confirm-delete-name {
-      font-family: 'DM Mono', monospace; font-size: 16px;
-      font-weight: 700; color: #E84A27; margin: 10px 0 6px;
-    }
-    .confirm-delete-sub {
-      font-size: 13px; color: #9b9589; margin-bottom: 22px; line-height: 1.5;
-    }
+    .confirm-delete-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .confirm-delete-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 28px 32px; max-width: 360px; width: 90%; text-align: center; }
+    .confirm-delete-name { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: #E84A27; margin: 10px 0 6px; }
+    .confirm-delete-sub { font-size: 13px; color: #9b9589; margin-bottom: 22px; line-height: 1.5; }
     .confirm-delete-actions { display: flex; gap: 10px; justify-content: center; }
     .success-screen { text-align: center; padding: 48px 24px; }
     .success-icon { width: 72px; height: 72px; background: #22E87A22; border: 2px solid #22E87A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
@@ -100,11 +75,14 @@
     .divider { height: 1px; background: #2a2a2a; margin: 20px 0; }
     .instructions { font-size: 13px; color: #9b9589; line-height: 1.7; margin-bottom: 20px; }
     .instructions strong { color: #f5f0e8; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .saving-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .saving-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 18px 28px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 13px; color: #9b9589; }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
     const { useState, useEffect } = React;
 
@@ -117,7 +95,12 @@
     ];
 
     const ADMIN_PASS = "BIG2026";
-    const STORAGE_KEY = "iirer:responses:v1";
+
+    // ── JSONBin config — fill these in ─────────────────────────────────────────
+    const JSONBIN_BIN_ID  = "699e5849d0ea881f40d69699";
+    const JSONBIN_API_KEY = "$2a$10$2sSTWOwVNrXo3CEtOjoMYO2dOR5rrO0AlACdhy4ET/X.gWG8/yX3S";
+    // ──────────────────────────────────────────────────────────────────────────
+
     const ALL_SLOT_IDS = DAYS.flatMap(d => d.slots.map(s => `${d.id}::${s}`));
 
     function slotKey(dayId, slot) { return `${dayId}::${slot}`; }
@@ -126,11 +109,25 @@
       const day = DAYS.find(d => d.id === dayId);
       return day ? `${day.label} ${day.date} @ ${slot}` : key;
     }
-    function loadFromStorage() {
-      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
-      catch { return []; }
+
+    async function binLoad() {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+        headers: { "X-Master-Key": JSONBIN_API_KEY, "X-Bin-Meta": "false" }
+      });
+      if (!res.ok) throw new Error("load failed");
+      const data = await res.json();
+      // JSONBin requires an object root — we store responses under data.responses
+      return Array.isArray(data.responses) ? data.responses : [];
     }
-    function saveToStorage(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+    async function binSave(responses) {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
+        body: JSON.stringify({ responses }),
+      });
+      if (!res.ok) throw new Error("save failed");
+    }
 
     function buildAllTimes() {
       const all = new Set();
@@ -148,19 +145,20 @@
     }
 
     function App() {
-      const [view, setView] = useState("home");
-      const [name, setName] = useState("");
-      const [selected, setSelected] = useState(new Set());
+      const [view, setView]           = useState("home");
+      const [name, setName]           = useState("");
+      const [selected, setSelected]   = useState(new Set());
       const [isDragging, setIsDragging] = useState(false);
-      const [dragMode, setDragMode] = useState(null);
+      const [dragMode, setDragMode]   = useState(null);
       const [responses, setResponses] = useState([]);
       const [adminPass, setAdminPass] = useState("");
       const [adminError, setAdminError] = useState("");
-      const [deleteTarget, setDeleteTarget] = useState(null); // name to confirm-delete
+      const [deleteTarget, setDeleteTarget] = useState(null);
+      const [busy, setBusy]           = useState(false);
+      const [busyMsg, setBusyMsg]     = useState("");
 
       const allTimes = buildAllTimes();
 
-      useEffect(() => { setResponses(loadFromStorage()); }, []);
       useEffect(() => {
         const up = () => setIsDragging(false);
         window.addEventListener("mouseup", up);
@@ -170,53 +168,54 @@
       const handleMouseDown = (key, exists) => {
         setIsDragging(true);
         setDragMode(exists ? "deselect" : "select");
-        setSelected(prev => {
-          const next = new Set(prev);
-          if (exists) next.delete(key); else next.add(key);
-          return next;
-        });
+        setSelected(prev => { const n = new Set(prev); if (exists) n.delete(key); else n.add(key); return n; });
       };
       const handleMouseEnter = (key) => {
         if (!isDragging) return;
-        setSelected(prev => {
-          const next = new Set(prev);
-          if (dragMode === "select") next.add(key); else next.delete(key);
-          return next;
-        });
+        setSelected(prev => { const n = new Set(prev); if (dragMode === "select") n.add(key); else n.delete(key); return n; });
       };
 
-      const handleSubmit = () => {
-        if (!name.trim() || selected.size === 0) return;
-        const current = loadFromStorage();
-        const updated = [...current.filter(r => r.name !== name.trim()), {
-          name: name.trim(), slots: Array.from(selected), submittedAt: new Date().toISOString(),
-        }];
-        saveToStorage(updated);
-        setResponses(updated);
-        setView("done");
+      const handleSubmit = async () => {
+        if (!name.trim() || selected.size === 0 || busy) return;
+        setBusy(true); setBusyMsg("Saving your availability…");
+        try {
+          const current = await binLoad();
+          const updated = [...current.filter(r => r.name !== name.trim()), {
+            name: name.trim(), slots: Array.from(selected), submittedAt: new Date().toISOString(),
+          }];
+          await binSave(updated);
+          setResponses(updated);
+          setView("done");
+        } catch { alert("Could not save. Please try again."); }
+        setBusy(false);
       };
 
-      const handleAdminLogin = () => {
-        if (adminPass === ADMIN_PASS) {
-          setAdminError("");
-          setResponses(loadFromStorage());
+      const handleAdminLogin = async () => {
+        if (adminPass !== ADMIN_PASS) { setAdminError("Incorrect password."); return; }
+        setAdminError(""); setBusy(true); setBusyMsg("Loading responses…");
+        try {
+          setResponses(await binLoad());
           setView("admin");
-        } else {
-          setAdminError("Incorrect password.");
-        }
+        } catch { setAdminError("Could not load responses. Check your JSONBin config."); }
+        setBusy(false);
       };
 
-      // ── DELETE ──────────────────────────────────────────────────────────────
-      const confirmDelete = (name) => setDeleteTarget(name);
-      const cancelDelete = () => setDeleteTarget(null);
-      const executeDelete = () => {
+      const refreshAdmin = async () => {
+        setBusy(true); setBusyMsg("Refreshing…");
+        try { setResponses(await binLoad()); } catch { alert("Refresh failed."); }
+        setBusy(false);
+      };
+
+      const confirmDelete = (n) => setDeleteTarget(n);
+      const cancelDelete  = () => setDeleteTarget(null);
+      const executeDelete = async () => {
         const updated = responses.filter(r => r.name !== deleteTarget);
-        saveToStorage(updated);
-        setResponses(updated);
-        setDeleteTarget(null);
+        setBusy(true); setBusyMsg("Deleting…");
+        try { await binSave(updated); setResponses(updated); } catch { alert("Delete failed."); }
+        setDeleteTarget(null); setBusy(false);
       };
 
-      // ── VOTE COUNTS ─────────────────────────────────────────────────────────
+      // vote counts
       const voteCounts = {};
       ALL_SLOT_IDS.forEach(id => { voteCounts[id] = 0; });
       responses.forEach(r => r.slots.forEach(s => { if (voteCounts[s] !== undefined) voteCounts[s]++; }));
@@ -227,9 +226,7 @@
         if (!voteCounts[key]) return "heat-0";
         if (voteCounts[key] === maxVotes) return "heat-max";
         const r = voteCounts[key] / maxVotes;
-        if (r < 0.25) return "heat-1";
-        if (r < 0.5)  return "heat-2";
-        if (r < 0.75) return "heat-3";
+        if (r < 0.25) return "heat-1"; if (r < 0.5) return "heat-2"; if (r < 0.75) return "heat-3";
         return "heat-4";
       };
 
@@ -259,19 +256,15 @@
                     const isWinner = key === winnerKey && maxVotes > 0;
                     return (
                       <td key={d.id} className="grid-slot-cell">
-                        {hasSlot ? (
-                          interactive ? (
-                            <div className={`grid-slot ${isSel ? "selected" : "available"}`}
-                              onMouseDown={() => handleMouseDown(key, isSel)}
-                              onMouseEnter={() => handleMouseEnter(key)} />
-                          ) : (
-                            <div className={`grid-slot heat-label ${isWinner ? "heat-max" : heatClass(key)}`}
-                              data-count={count > 0 ? count : ""}
-                              title={`${getSlotInfo(key)}: ${count} available`} />
-                          )
+                        {hasSlot ? (interactive ? (
+                          <div className={`grid-slot ${isSel ? "selected" : "available"}`}
+                            onMouseDown={() => handleMouseDown(key, isSel)}
+                            onMouseEnter={() => handleMouseEnter(key)} />
                         ) : (
-                          <div className="grid-slot empty" />
-                        )}
+                          <div className={`grid-slot heat-label ${isWinner ? "heat-max" : heatClass(key)}`}
+                            data-count={count > 0 ? count : ""}
+                            title={`${getSlotInfo(key)}: ${count} available`} />
+                        )) : <div className="grid-slot empty" />}
                       </td>
                     );
                   })}
@@ -285,15 +278,18 @@
       return (
         <div className="w2m-root">
 
-          {/* ── DELETE CONFIRM MODAL ── */}
+          {busy && (
+            <div className="saving-overlay">
+              <div className="saving-box"><span className="spinner"></span>{busyMsg}</div>
+            </div>
+          )}
+
           {deleteTarget && (
             <div className="confirm-delete-overlay" onClick={cancelDelete}>
               <div className="confirm-delete-box" onClick={e => e.stopPropagation()}>
                 <div style={{fontSize:28}}>🗑️</div>
                 <div className="confirm-delete-name">{deleteTarget}</div>
-                <div className="confirm-delete-sub">
-                  This will permanently remove their availability response. This cannot be undone.
-                </div>
+                <div className="confirm-delete-sub">This will permanently remove their availability. This cannot be undone.</div>
                 <div className="confirm-delete-actions">
                   <button className="w2m-btn w2m-btn-ghost" onClick={cancelDelete}>Cancel</button>
                   <button className="w2m-btn w2m-btn-primary" onClick={executeDelete}>Delete</button>
@@ -309,7 +305,6 @@
 
           <div className="w2m-container">
 
-            {/* HOME */}
             {view === "home" && (
               <>
                 <h1 className="w2m-title">When can you meet with Robyn & Jim?</h1>
@@ -318,12 +313,9 @@
                   <div className="w2m-label">Your Name and Team</div>
                   <input className="w2m-input" placeholder="e.g. Sahil - Team Z" value={name}
                     onChange={e => setName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && name.trim() && setView("pick")}
-                    autoFocus />
+                    onKeyDown={e => e.key === "Enter" && name.trim() && setView("pick")} autoFocus />
                   <div style={{marginTop:16}}>
-                    <button className="w2m-btn w2m-btn-primary" disabled={!name.trim()} onClick={() => setView("pick")}>
-                      Continue →
-                    </button>
+                    <button className="w2m-btn w2m-btn-primary" disabled={!name.trim()} onClick={() => setView("pick")}>Continue →</button>
                   </div>
                 </div>
                 <div className="w2m-card" style={{background:"#0d0d0d",border:"1px solid #1e1e1e"}}>
@@ -338,7 +330,6 @@
               </>
             )}
 
-            {/* PICK */}
             {view === "pick" && (
               <>
                 <div className="section-head">
@@ -357,7 +348,7 @@
                     <span style={{fontFamily:"'DM Mono',monospace",fontSize:12,color:"#9b9589"}}>
                       {selected.size} slot{selected.size !== 1 ? "s" : ""} selected
                     </span>
-                    <button className="w2m-btn w2m-btn-primary" disabled={selected.size === 0} onClick={handleSubmit}>
+                    <button className="w2m-btn w2m-btn-primary" disabled={selected.size === 0 || busy} onClick={handleSubmit}>
                       Submit Availability →
                     </button>
                   </div>
@@ -365,7 +356,6 @@
               </>
             )}
 
-            {/* DONE */}
             {view === "done" && (
               <div className="w2m-card">
                 <div className="success-screen">
@@ -382,33 +372,25 @@
               </div>
             )}
 
-            {/* ADMIN LOGIN */}
             {view === "adminLogin" && (
               <>
                 <h1 className="w2m-title" style={{fontSize:22,marginBottom:6}}>Organizer Access</h1>
                 <p className="w2m-subtitle">Enter your admin password to view aggregated results.</p>
                 <div className="w2m-card">
                   <div className="w2m-label">Admin Password</div>
-                  <input
-                    className="w2m-input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={adminPass}
+                  <input className="w2m-input" type="password" placeholder="••••••••" value={adminPass}
                     autoComplete="off"
                     onChange={e => { setAdminPass(e.target.value); setAdminError(""); }}
-                    onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
-                    autoFocus
-                  />
+                    onKeyDown={e => e.key === "Enter" && handleAdminLogin()} autoFocus />
                   {adminError && <p style={{color:"#E84A27",fontSize:12,marginTop:8,fontFamily:"'DM Mono',monospace"}}>{adminError}</p>}
                   <div style={{marginTop:16,display:"flex",gap:10}}>
-                    <button className="w2m-btn w2m-btn-primary" onClick={handleAdminLogin}>View Results →</button>
+                    <button className="w2m-btn w2m-btn-primary" disabled={busy} onClick={handleAdminLogin}>View Results →</button>
                     <button className="w2m-btn w2m-btn-ghost" onClick={() => setView("home")}>← Back</button>
                   </div>
                 </div>
               </>
             )}
 
-            {/* ADMIN */}
             {view === "admin" && (
               <>
                 <div className="section-head">
@@ -417,7 +399,7 @@
                     <p className="w2m-subtitle" style={{marginBottom:0}}>{responses.length} response{responses.length !== 1 ? "s" : ""} · darker = more votes</p>
                   </div>
                   <div style={{display:"flex",gap:8}}>
-                    <button className="w2m-btn w2m-btn-ghost" onClick={() => setResponses(loadFromStorage())}>↻ Refresh</button>
+                    <button className="w2m-btn w2m-btn-ghost" disabled={busy} onClick={refreshAdmin}>↻ Refresh</button>
                     <button className="w2m-btn w2m-btn-ghost" onClick={() => setView("home")}>← Back</button>
                   </div>
                 </div>
@@ -444,24 +426,17 @@
                       <div className="w2m-label" style={{marginBottom:14}}>Availability Heatmap</div>
                       <Grid interactive={false} />
                     </div>
-
-                    {/* RESPONDENTS with delete */}
                     <div className="w2m-card">
                       <div className="w2m-label">Respondents ({responses.length})</div>
                       <div className="respondent-list">
                         {responses.map((r, i) => (
                           <div key={i} className="respondent-chip">
                             {r.name}
-                            <button
-                              className="respondent-delete"
-                              title={`Remove ${r.name}`}
-                              onClick={() => confirmDelete(r.name)}
-                            >✕</button>
+                            <button className="respondent-delete" title={`Remove ${r.name}`} onClick={() => confirmDelete(r.name)}>✕</button>
                           </div>
                         ))}
                       </div>
                     </div>
-
                     <div className="w2m-card">
                       <div className="w2m-label">Top Time Slots</div>
                       {Object.entries(voteCounts).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]).slice(0,8).map(([key,count],i) => (
@@ -482,7 +457,6 @@
                 )}
               </>
             )}
-
           </div>
         </div>
       );
