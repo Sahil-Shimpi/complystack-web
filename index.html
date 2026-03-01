@@ -1,468 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BIG × IIRER · Meeting Scheduler</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #0d0d0d; min-height: 100vh; }
-    .w2m-root { min-height: 100vh; background: #0d0d0d; color: #f5f0e8; font-family: 'DM Sans', sans-serif; padding: 0 0 60px; }
-    .w2m-header { background: #13294B; border-bottom: 3px solid #E84A27; padding: 20px 28px 18px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-    .w2m-logo { font-family: 'DM Mono', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: #f5f0e8; }
-    .w2m-logo span { color: #E84A27; }
-    .w2m-badge { font-family: 'DM Mono', monospace; font-size: 10px; background: #E84A27; color: white; padding: 3px 9px; border-radius: 20px; letter-spacing: 1px; }
-    .w2m-container { max-width: 760px; margin: 0 auto; padding: 32px 20px 0; }
-    .w2m-title { font-family: 'DM Mono', sans-serif; font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
-    .w2m-subtitle { font-size: 14px; color: #9b9589; margin-bottom: 28px; font-family: 'DM Mono', monospace; }
-    .w2m-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 24px; margin-bottom: 20px; }
-    .w2m-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #9b9589; margin-bottom: 10px; }
-    .w2m-input { width: 100%; background: #0d0d0d; border: 1.5px solid #333; border-radius: 8px; padding: 12px 14px; color: #f5f0e8; font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: border-color 0.15s; }
-    .w2m-input:focus { border-color: #E84A27; }
-    .w2m-btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; letter-spacing: 0.2px; }
-    .w2m-btn-primary { background: #E84A27; color: white; }
-    .w2m-btn-primary:hover { background: #d43e1f; transform: translateY(-1px); }
-    .w2m-btn-primary:disabled { background: #444; color: #666; cursor: not-allowed; transform: none; }
-    .w2m-btn-ghost { background: transparent; color: #9b9589; border: 1px solid #2a2a2a; padding: 8px 16px; font-size: 12px; }
-    .w2m-btn-ghost:hover { border-color: #555; color: #f5f0e8; }
-    .grid-wrap { overflow-x: auto; }
-    .grid-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 520px; }
-    .grid-head-cell { text-align: center; padding: 6px 4px 12px; }
-    .grid-day-label { font-family: 'DM Mono', sans-serif; font-size: 13px; font-weight: 800; color: #f5f0e8; display: block; }
-    .grid-date-label { font-family: 'DM Mono', monospace; font-size: 10px; color: #f5f0e8; display: block; margin-top: 2px; }
-    .grid-time-cell { font-family: 'DM Mono', monospace; font-size: 10px; color: #f5f0e8; padding: 0 10px 0 0; white-space: nowrap; vertical-align: middle; width: 56px; text-align: right; }
-    .grid-slot { width: 100%; height: 36px; border-radius: 5px; border: 1.5px solid #2a2a2a; cursor: pointer; transition: all 0.1s; margin: 1px; display: block; user-select: none; }
-    .grid-slot.empty { background: #111; cursor: not-allowed; border-color: transparent; }
-    .grid-slot.available { background: #1a2e1a; border-color: #2a4a2a; }
-    .grid-slot.available:hover { background: #22E87A22; border-color: #22E87A; }
-    .grid-slot.selected { background: #22E87A; border-color: #22E87A; box-shadow: 0 0 8px #22E87A55; }
-    .grid-slot.selected:hover { background: #1dd66b; }
-    .grid-slot-cell { padding: 1px 2px; }
-    .heat-0  { background: #111; border-color: #1a1a1a; cursor: default; }
-    .heat-1  { background: #132213; border-color: #1e3b1e; cursor: default; }
-    .heat-2  { background: #1a3a1a; border-color: #2a5a2a; cursor: default; }
-    .heat-3  { background: #1e4d1e; border-color: #2e7a2e; cursor: default; }
-    .heat-4  { background: #1a6e1a; border-color: #2aaa2a; cursor: default; }
-    .heat-max { background: #22E87A; border-color: #22E87A; box-shadow: 0 0 10px #22E87A88; cursor: default; }
-    .heat-label { position: relative; }
-    .heat-label:after { content: attr(data-count); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.75); pointer-events: none; }
-    .winner-banner { background: linear-gradient(135deg, #13294B, #1a3a1a); border: 2px solid #22E87A; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; }
-    .winner-icon { font-size: 28px; }
-    .winner-time { font-family: 'DM Mono', sans-serif; font-size: 20px; font-weight: 800; color: #22E87A; }
-    .winner-votes { font-family: 'DM Mono', monospace; font-size: 11px; color: #9b9589; margin-top: 2px; }
-    .respondent-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .respondent-chip { display: flex; align-items: center; gap: 6px; background: #13294B; border: 1px solid #1e3d6e; border-radius: 20px; padding: 4px 8px 4px 12px; font-size: 12px; font-family: 'DM Mono', monospace; color: #7ab4f5; }
-    .respondent-delete { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: transparent; border: 1px solid #2a4a7a; color: #7ab4f5; font-size: 10px; cursor: pointer; transition: all 0.15s; line-height: 1; padding: 0; font-family: monospace; }
-    .respondent-delete:hover { background: #E84A27; border-color: #E84A27; color: white; }
-    .confirm-delete-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .confirm-delete-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 28px 32px; max-width: 360px; width: 90%; text-align: center; }
-    .confirm-delete-name { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; color: #E84A27; margin: 10px 0 6px; }
-    .confirm-delete-sub { font-size: 13px; color: #9b9589; margin-bottom: 22px; line-height: 1.5; }
-    .confirm-delete-actions { display: flex; gap: 10px; justify-content: center; }
-    .success-screen { text-align: center; padding: 48px 24px; }
-    .success-icon { width: 72px; height: 72px; background: #22E87A22; border: 2px solid #22E87A; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 20px; }
-    .success-title { font-family: 'DM Mono', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-    .success-sub { font-size: 14px; color: #9b9589; max-width: 320px; margin: 0 auto; line-height: 1.6; }
-    .admin-link { text-align: center; margin-top: 24px; font-family: 'DM Mono', monospace; font-size: 11px; color: #444; cursor: pointer; }
-    .admin-link:hover { color: #666; }
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-    .divider { height: 1px; background: #2a2a2a; margin: 20px 0; }
-    .instructions { font-size: 13px; color: #9b9589; line-height: 1.7; margin-bottom: 20px; }
-    .instructions strong { color: #f5f0e8; }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .saving-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: flex; align-items: center; justify-content: center; }
-    .saving-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 18px 28px; display: flex; align-items: center; gap: 12px; font-family: 'DM Mono', monospace; font-size: 13px; color: #9b9589; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplyStack | Compliance Copilot for SMBs</title>
+    <style>
+        :root {
+            --primary: #0078D4; /* Microsoft Azure Blue */
+            --dark: #2b2b2b;
+            --light: #f3f2f1;
+            --text: #323130;
+            --border: #e1dfdd;
+        }
+        body {
+            font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text);
+            background-color: #fff;
+            line-height: 1.6;
+        }
+        .nav {
+            padding: 1rem 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+        .hero {
+            text-align: center;
+            padding: 6rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .badge {
+            background-color: #e5f1fb;
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -1.5px;
+            color: var(--dark);
+            line-height: 1.1;
+        }
+        .sub-head {
+            font-size: 1.35rem;
+            color: #605e5c;
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+        }
+        .sub-head span {
+            display: block;
+            margin-top: 0.5rem;
+            color: var(--dark);
+            font-weight: 500;
+        }
+        .cta-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 28px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #005a9e;
+        }
+        /* Grid Fix */
+        .grid-container {
+            background-color: var(--light);
+            padding: 4rem 10%;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            height: 100%; /* Ensures cards are same height */
+            box-sizing: border-box;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const { useState, useEffect } = React;
 
-    const DAYS = [
-      { id: "thu226", label: "Thu", date: "Feb 26", slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","12:30 PM"] },
-      { id: "fri227", label: "Fri", date: "Feb 27", slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","2:00 PM","2:30 PM","3:00 PM","3:30 PM"] },
-      { id: "mon33",  label: "Mon", date: "Mar 3",  slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","12:00 PM","12:30 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM"] },
-      { id: "tue34",  label: "Tue", date: "Mar 4",  slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","12:30 PM"] },
-      { id: "wed35",  label: "Wed", date: "Mar 5",  slots: ["8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","12:00 PM","12:30 PM"] },
-    ];
+    <div class="nav">
+        <div class="logo">ComplyStack</div>
+        <a href="mailto:sahil@complystack.app" style="color:var(--primary); text-decoration:none; font-weight:600;">Contact Sales</a>
+    </div>
 
-    const ADMIN_PASS = "BIG2026";
+    <div class="hero">
+        <div class="badge">Private Beta • 2026</div>
+        
+        <h1>The Operating System for Compliance.</h1>
+        
+        <p class="sub-head">
+            Compliance Copilot for Small to Mid-Sized Businesses.
+            <br>
+            <span>Upload contracts. Extract obligations. Sleep better.</span>
+        </p>
 
-    // ── JSONBin config — fill these in ─────────────────────────────────────────
-    const JSONBIN_BIN_ID  = "699e5849d0ea881f40d69699";
-    const JSONBIN_API_KEY = "$2a$10$2sSTWOwVNrXo3CEtOjoMYO2dOR5rrO0AlACdhy4ET/X.gWG8/yX3S";
-    // ──────────────────────────────────────────────────────────────────────────
-
-    const ALL_SLOT_IDS = DAYS.flatMap(d => d.slots.map(s => `${d.id}::${s}`));
-
-    function slotKey(dayId, slot) { return `${dayId}::${slot}`; }
-    function getSlotInfo(key) {
-      const [dayId, slot] = key.split("::");
-      const day = DAYS.find(d => d.id === dayId);
-      return day ? `${day.label} ${day.date} @ ${slot}` : key;
-    }
-
-    async function binLoad() {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-        headers: { "X-Master-Key": JSONBIN_API_KEY, "X-Bin-Meta": "false" }
-      });
-      if (!res.ok) throw new Error("load failed");
-      const data = await res.json();
-      // JSONBin requires an object root — we store responses under data.responses
-      return Array.isArray(data.responses) ? data.responses : [];
-    }
-
-    async function binSave(responses) {
-      const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "X-Master-Key": JSONBIN_API_KEY },
-        body: JSON.stringify({ responses }),
-      });
-      if (!res.ok) throw new Error("save failed");
-    }
-
-    function buildAllTimes() {
-      const all = new Set();
-      DAYS.forEach(d => d.slots.forEach(s => all.add(s)));
-      return Array.from(all).sort((a, b) => {
-        const toMins = t => {
-          const [time, period] = t.split(" ");
-          let [h, m] = time.split(":").map(Number);
-          if (period === "PM" && h !== 12) h += 12;
-          if (period === "AM" && h === 12) h = 0;
-          return h * 60 + m;
-        };
-        return toMins(a) - toMins(b);
-      });
-    }
-
-    function App() {
-      const [view, setView]           = useState("home");
-      const [name, setName]           = useState("");
-      const [selected, setSelected]   = useState(new Set());
-      const [isDragging, setIsDragging] = useState(false);
-      const [dragMode, setDragMode]   = useState(null);
-      const [responses, setResponses] = useState([]);
-      const [adminPass, setAdminPass] = useState("");
-      const [adminError, setAdminError] = useState("");
-      const [deleteTarget, setDeleteTarget] = useState(null);
-      const [busy, setBusy]           = useState(false);
-      const [busyMsg, setBusyMsg]     = useState("");
-
-      const allTimes = buildAllTimes();
-
-      useEffect(() => {
-        const up = () => setIsDragging(false);
-        window.addEventListener("mouseup", up);
-        return () => window.removeEventListener("mouseup", up);
-      }, []);
-
-      const handleMouseDown = (key, exists) => {
-        setIsDragging(true);
-        setDragMode(exists ? "deselect" : "select");
-        setSelected(prev => { const n = new Set(prev); if (exists) n.delete(key); else n.add(key); return n; });
-      };
-      const handleMouseEnter = (key) => {
-        if (!isDragging) return;
-        setSelected(prev => { const n = new Set(prev); if (dragMode === "select") n.add(key); else n.delete(key); return n; });
-      };
-
-      const handleSubmit = async () => {
-        if (!name.trim() || selected.size === 0 || busy) return;
-        setBusy(true); setBusyMsg("Saving your availability…");
-        try {
-          const current = await binLoad();
-          const updated = [...current.filter(r => r.name !== name.trim()), {
-            name: name.trim(), slots: Array.from(selected), submittedAt: new Date().toISOString(),
-          }];
-          await binSave(updated);
-          setResponses(updated);
-          setView("done");
-        } catch { alert("Could not save. Please try again."); }
-        setBusy(false);
-      };
-
-      const handleAdminLogin = async () => {
-        if (adminPass !== ADMIN_PASS) { setAdminError("Incorrect password."); return; }
-        setAdminError(""); setBusy(true); setBusyMsg("Loading responses…");
-        try {
-          setResponses(await binLoad());
-          setView("admin");
-        } catch { setAdminError("Could not load responses. Check your JSONBin config."); }
-        setBusy(false);
-      };
-
-      const refreshAdmin = async () => {
-        setBusy(true); setBusyMsg("Refreshing…");
-        try { setResponses(await binLoad()); } catch { alert("Refresh failed."); }
-        setBusy(false);
-      };
-
-      const confirmDelete = (n) => setDeleteTarget(n);
-      const cancelDelete  = () => setDeleteTarget(null);
-      const executeDelete = async () => {
-        const updated = responses.filter(r => r.name !== deleteTarget);
-        setBusy(true); setBusyMsg("Deleting…");
-        try { await binSave(updated); setResponses(updated); } catch { alert("Delete failed."); }
-        setDeleteTarget(null); setBusy(false);
-      };
-
-      // vote counts
-      const voteCounts = {};
-      ALL_SLOT_IDS.forEach(id => { voteCounts[id] = 0; });
-      responses.forEach(r => r.slots.forEach(s => { if (voteCounts[s] !== undefined) voteCounts[s]++; }));
-      const maxVotes = Math.max(...Object.values(voteCounts), 0);
-      const winnerKey = maxVotes > 0 ? Object.entries(voteCounts).sort((a,b) => b[1]-a[1])[0][0] : null;
-
-      const heatClass = (key) => {
-        if (!voteCounts[key]) return "heat-0";
-        if (voteCounts[key] === maxVotes) return "heat-max";
-        const r = voteCounts[key] / maxVotes;
-        if (r < 0.25) return "heat-1"; if (r < 0.5) return "heat-2"; if (r < 0.75) return "heat-3";
-        return "heat-4";
-      };
-
-      const Grid = ({ interactive }) => (
-        <div className="grid-wrap">
-          <table className="grid-table">
-            <thead>
-              <tr>
-                <th style={{width:60}}></th>
-                {DAYS.map(d => (
-                  <th key={d.id} className="grid-head-cell">
-                    <span className="grid-day-label">{d.label}</span>
-                    <span className="grid-date-label">{d.date}</span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {allTimes.map(time => (
-                <tr key={time}>
-                  <td className="grid-time-cell">{time}</td>
-                  {DAYS.map(d => {
-                    const hasSlot = d.slots.includes(time);
-                    const key = slotKey(d.id, time);
-                    const isSel = selected.has(key);
-                    const count = voteCounts[key] || 0;
-                    const isWinner = key === winnerKey && maxVotes > 0;
-                    return (
-                      <td key={d.id} className="grid-slot-cell">
-                        {hasSlot ? (interactive ? (
-                          <div className={`grid-slot ${isSel ? "selected" : "available"}`}
-                            onMouseDown={() => handleMouseDown(key, isSel)}
-                            onMouseEnter={() => handleMouseEnter(key)} />
-                        ) : (
-                          <div className={`grid-slot heat-label ${isWinner ? "heat-max" : heatClass(key)}`}
-                            data-count={count > 0 ? count : ""}
-                            title={`${getSlotInfo(key)}: ${count} available`} />
-                        )) : <div className="grid-slot empty" />}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div class="cta-container">
+            <a href="mailto:sahil@complystack.app" class="btn btn-primary">Request Early Access</a>
         </div>
-      );
+    </div>
 
-      return (
-        <div className="w2m-root">
-
-          {busy && (
-            <div className="saving-overlay">
-              <div className="saving-box"><span className="spinner"></span>{busyMsg}</div>
+    <div class="grid-container">
+        <div class="grid">
+            <div class="card">
+                <h3>📑 Contract Parsing</h3>
+                <p>Don't read 50-page PDFs. We extract obligations, deadlines, and risk flags automatically.</p>
             </div>
-          )}
-
-          {deleteTarget && (
-            <div className="confirm-delete-overlay" onClick={cancelDelete}>
-              <div className="confirm-delete-box" onClick={e => e.stopPropagation()}>
-                <div style={{fontSize:28}}>🗑️</div>
-                <div className="confirm-delete-name">{deleteTarget}</div>
-                <div className="confirm-delete-sub">This will permanently remove their availability. This cannot be undone.</div>
-                <div className="confirm-delete-actions">
-                  <button className="w2m-btn w2m-btn-ghost" onClick={cancelDelete}>Cancel</button>
-                  <button className="w2m-btn w2m-btn-primary" onClick={executeDelete}>Delete</button>
-                </div>
-              </div>
+            <div class="card">
+                <h3>📊 KPI Dashboards</h3>
+                <p>Visualizing your risk exposure. View missed obligations and upcoming audit deadlines at a glance.</p>
             </div>
-          )}
-
-          <header className="w2m-header">
-            <div className="w2m-logo">BIG <span>×</span> IIRER</div>
-            <div className="w2m-badge">MEETING SCHEDULER</div>
-          </header>
-
-          <div className="w2m-container">
-
-            {view === "home" && (
-              <>
-                <h1 className="w2m-title">When can you meet with Robyn & Jim?</h1>
-                <p className="w2m-subtitle">Select all times that work for you.</p>
-                <div className="w2m-card">
-                  <div className="w2m-label">Your Name and Team</div>
-                  <input className="w2m-input" placeholder="e.g. Sahil - Team Z" value={name}
-                    onChange={e => setName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && name.trim() && setView("pick")} autoFocus />
-                  <div style={{marginTop:16}}>
-                    <button className="w2m-btn w2m-btn-primary" disabled={!name.trim()} onClick={() => setView("pick")}>Continue →</button>
-                  </div>
-                </div>
-                <div className="w2m-card" style={{background:"#0d0d0d",border:"1px solid #1e1e1e"}}>
-                  <div className="w2m-label">How it works</div>
-                  <p className="instructions">
-                    <strong>1. Enter your name and team.</strong> Then click or drag the slots you're available.<br/>
-                    <strong>2. Submit</strong> — your choices are recorded.<br/>
-                    <strong>3. The organizers</strong> will review all responses and confirm the final time.
-                  </p>
-                </div>
-                <div className="admin-link" onClick={() => setView("adminLogin")}>Organizer? View results →</div>
-              </>
-            )}
-
-            {view === "pick" && (
-              <>
-                <div className="section-head">
-                  <div>
-                    <h1 className="w2m-title" style={{fontSize:22}}>Logged in as: {name}</h1>
-                    <p className="w2m-subtitle" style={{marginBottom:0}}>
-                      Click or drag to select available slots &nbsp;·&nbsp; <span style={{color:"#22E87A"}}>■</span> = you're free
-                    </p>
-                  </div>
-                  <button className="w2m-btn w2m-btn-ghost" onClick={() => { setView("home"); setSelected(new Set()); }}>← Back</button>
-                </div>
-                <div className="w2m-card" style={{padding:"20px 16px"}}>
-                  <Grid interactive={true} />
-                  <div className="divider" />
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:12,color:"#9b9589"}}>
-                      {selected.size} slot{selected.size !== 1 ? "s" : ""} selected
-                    </span>
-                    <button className="w2m-btn w2m-btn-primary" disabled={selected.size === 0 || busy} onClick={handleSubmit}>
-                      Submit Availability →
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {view === "done" && (
-              <div className="w2m-card">
-                <div className="success-screen">
-                  <div className="success-icon">✓</div>
-                  <h2 className="success-title">You're all set, {name}!</h2>
-                  <p className="success-sub">Your availability has been recorded. The organizer will confirm the final meeting time.</p>
-                  <div style={{marginTop:28}}>
-                    <button className="w2m-btn w2m-btn-ghost" onClick={() => { setView("home"); setName(""); setSelected(new Set()); }}>
-                      Submit for another person
-                    </button>
-                  </div>
-                </div>
-                <div className="admin-link" onClick={() => setView("adminLogin")}>Organizer? View results →</div>
-              </div>
-            )}
-
-            {view === "adminLogin" && (
-              <>
-                <h1 className="w2m-title" style={{fontSize:22,marginBottom:6}}>Organizer Access</h1>
-                <p className="w2m-subtitle">Enter your admin password to view aggregated results.</p>
-                <div className="w2m-card">
-                  <div className="w2m-label">Admin Password</div>
-                  <input className="w2m-input" type="password" placeholder="••••••••" value={adminPass}
-                    autoComplete="off"
-                    onChange={e => { setAdminPass(e.target.value); setAdminError(""); }}
-                    onKeyDown={e => e.key === "Enter" && handleAdminLogin()} autoFocus />
-                  {adminError && <p style={{color:"#E84A27",fontSize:12,marginTop:8,fontFamily:"'DM Mono',monospace"}}>{adminError}</p>}
-                  <div style={{marginTop:16,display:"flex",gap:10}}>
-                    <button className="w2m-btn w2m-btn-primary" disabled={busy} onClick={handleAdminLogin}>View Results →</button>
-                    <button className="w2m-btn w2m-btn-ghost" onClick={() => setView("home")}>← Back</button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {view === "admin" && (
-              <>
-                <div className="section-head">
-                  <div>
-                    <h1 className="w2m-title" style={{fontSize:22}}>Results Dashboard</h1>
-                    <p className="w2m-subtitle" style={{marginBottom:0}}>{responses.length} response{responses.length !== 1 ? "s" : ""} · darker = more votes</p>
-                  </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <button className="w2m-btn w2m-btn-ghost" disabled={busy} onClick={refreshAdmin}>↻ Refresh</button>
-                    <button className="w2m-btn w2m-btn-ghost" onClick={() => setView("home")}>← Back</button>
-                  </div>
-                </div>
-
-                {winnerKey && maxVotes > 0 && (
-                  <div className="winner-banner">
-                    <div className="winner-icon">🏆</div>
-                    <div>
-                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:10,color:"#9b9589",letterSpacing:2,textTransform:"uppercase",marginBottom:4}}>Best Meeting Time</div>
-                      <div className="winner-time">{getSlotInfo(winnerKey)}</div>
-                      <div className="winner-votes">{voteCounts[winnerKey]} / {responses.length} people available</div>
-                    </div>
-                  </div>
-                )}
-
-                {responses.length === 0 ? (
-                  <div className="w2m-card" style={{textAlign:"center",padding:"40px 24px",color:"#9b9589"}}>
-                    <div style={{fontSize:32,marginBottom:12}}>📭</div>
-                    <p style={{fontFamily:"'DM Mono',monospace",fontSize:13}}>No responses yet. Share this page with your teams!</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w2m-card" style={{padding:"20px 16px"}}>
-                      <div className="w2m-label" style={{marginBottom:14}}>Availability Heatmap</div>
-                      <Grid interactive={false} />
-                    </div>
-                    <div className="w2m-card">
-                      <div className="w2m-label">Respondents ({responses.length})</div>
-                      <div className="respondent-list">
-                        {responses.map((r, i) => (
-                          <div key={i} className="respondent-chip">
-                            {r.name}
-                            <button className="respondent-delete" title={`Remove ${r.name}`} onClick={() => confirmDelete(r.name)}>✕</button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="w2m-card">
-                      <div className="w2m-label">Top Time Slots</div>
-                      {Object.entries(voteCounts).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]).slice(0,8).map(([key,count],i) => (
-                        <div key={key} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:i<7?"1px solid #1e1e1e":"none"}}>
-                          <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:"#444",width:18}}>#{i+1}</span>
-                            <span style={{fontSize:14,color:key===winnerKey?"#22E87A":"#f5f0e8",fontWeight:key===winnerKey?600:400}}>{getSlotInfo(key)}</span>
-                            {key===winnerKey && <span style={{fontSize:10,background:"#22E87A22",border:"1px solid #22E87A55",color:"#22E87A",padding:"2px 8px",borderRadius:20,fontFamily:"'DM Mono',monospace"}}>WINNER</span>}
-                          </div>
-                          <div style={{display:"flex",alignItems:"center",gap:8}}>
-                            <div style={{width:`${Math.round((count/responses.length)*80)}px`,minWidth:4,height:6,background:key===winnerKey?"#22E87A":"#2a5a2a",borderRadius:3}} />
-                            <span style={{fontFamily:"'DM Mono',monospace",fontSize:11,color:"#9b9589",minWidth:32,textAlign:"right"}}>{count}/{responses.length}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div>
+            <div class="card">
+                <h3>🛡️ Audit Ready</h3>
+                <p>Automated documentation logs. When the regulators ask, you have the data ready in seconds.</p>
+            </div>
         </div>
-      );
-    }
+    </div>
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-  </script>
+    <footer>
+        &copy; 2026 ComplyStack Inc. Built by Sahil Shimpi.
+    </footer>
+
 </body>
 </html>
